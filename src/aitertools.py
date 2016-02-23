@@ -1,3 +1,6 @@
+import functools
+
+
 async def aiter(aiterable):
     """The async version of the builtin ``iter``."""
     return await aiterable.__aiter__()
@@ -38,3 +41,21 @@ def coroutine_iterator(afunc):
     CoroutineIterator.__name__ = afunc.__name__
     CoroutineIterator.__module__ = afunc.__module__
     return CoroutineIterator
+
+
+@coroutine_iterator
+async def to_aiter(iterable):
+    iterator = iter(iterable)
+    async def __anext__():
+        try:
+            return next(iterator)
+        except StopIteration as e:
+            raise StopAsyncIteration() from e
+    return __anext__
+
+
+def to_async(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper

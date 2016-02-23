@@ -74,3 +74,29 @@ class TestDecorators:
         assert a_strange_name.__module__ == __name__
         assert repr(a_strange_name) == "<class '{module}.{name}'>".format(
             module=a_strange_name.__module__, name=a_strange_name.__name__)
+
+
+class TestUtils:
+    """Tests for utility functions."""
+
+    @pytest.mark.asyncio
+    async def test_to_async(self):
+        """It should allow a normal function to be awaited."""
+        def test_func():
+            return 42
+
+        async_test_func = aitertools.to_async(test_func)
+        assert async_test_func.__name__ == test_func.__name__
+        assert async_test_func.__module__ == test_func.__module__
+        assert async_test_func.__doc__ == test_func.__doc__
+
+    @pytest.mark.asyncio
+    async def test_to_aiter(self):
+        """It should allow a standard iterator to be used async."""
+        sync_iterable = list('abcdefg')
+        async_iterator = aitertools.to_aiter(sync_iterable)
+
+        values = []
+        async for value in async_iterator:
+            values.append(value)
+        assert values == sync_iterable
