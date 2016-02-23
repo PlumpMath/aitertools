@@ -100,3 +100,40 @@ class TestUtils:
         async for value in async_iterator:
             values.append(value)
         assert values == sync_iterable
+
+
+class TestAsyncItertools:
+    """Tests for async ports of itertools functions."""
+
+    @pytest.mark.asyncio
+    async def test_azip(self):
+        """It should zip two async iterables together."""
+        one = aitertools.to_aiter(range(10))
+        two = aitertools.to_aiter(reversed(range(10)))
+
+        expected = list(zip(range(10), reversed(range(10))))
+        actual = []
+        async for value in aitertools.azip(one, two):
+            actual.append(value)
+
+        assert actual == expected
+
+
+class TestUniqueAsyncItertools:
+    """Tests for functionality new to aitertools."""
+
+    @pytest.mark.asyncio
+    async def test_schedule(self):
+        """It should return the same values, and exhaust the scheduler."""
+        expected = list(range(20))
+
+        aiterator = aitertools.to_aiter(expected)
+        scheduler = aitertools.to_aiter(reversed(range(20)))
+
+        actual = []
+        async for val in aitertools.schedule(aiterator, scheduler):
+            actual.append(val)
+
+        assert actual == expected
+        with pytest.raises(StopAsyncIteration):
+            await aitertools.anext(scheduler)

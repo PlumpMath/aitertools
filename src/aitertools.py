@@ -1,3 +1,4 @@
+import asyncio
 import functools
 
 
@@ -59,3 +60,20 @@ def to_async(func):
     async def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
+
+
+@coroutine_iterator
+async def azip(*aiterables):
+    aiters = await asyncio.gather(*tuple(map(aiter, aiterables)))
+    async def __anext__():
+        return tuple(await asyncio.gather(*tuple(map(anext, aiterables))))
+    return __anext__
+
+
+@coroutine_iterator
+async def schedule(aiterable, scheduler):
+    azipped = azip(aiterable, scheduler)
+    async def __anext__():
+        value, _ = await anext(azipped)
+        return value
+    return __anext__
