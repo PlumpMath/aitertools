@@ -132,6 +132,33 @@ class TestAsyncItertools:
 
         assert actual == expected
 
+    @pytest.mark.asyncio
+    async def test_acount_no_args(self):
+        """It should return values starting at 0."""
+        aiterator = aitertools.acount()
+        assert await aitertools.anext(aiterator) == 0
+        assert await aitertools.anext(aiterator) == 1
+        assert await aitertools.anext(aiterator) == 2
+        assert await aitertools.anext(aiterator) == 3
+
+    @pytest.mark.asyncio
+    async def test_acount_one_arg(self):
+        """It should return values starting at a custom value."""
+        aiterator = aitertools.acount(10)
+        assert await aitertools.anext(aiterator) == 10
+        assert await aitertools.anext(aiterator) == 11
+        assert await aitertools.anext(aiterator) == 12
+        assert await aitertools.anext(aiterator) == 13
+
+    @pytest.mark.asyncio
+    async def test_acount_two_args(self):
+        """It should return values with a custom start and step."""
+        aiterator = aitertools.acount(100, 5)
+        assert await aitertools.anext(aiterator) == 100
+        assert await aitertools.anext(aiterator) == 105
+        assert await aitertools.anext(aiterator) == 110
+        assert await aitertools.anext(aiterator) == 115
+
 
 class TestUniqueAsyncItertools:
     """Tests for functionality new to aitertools."""

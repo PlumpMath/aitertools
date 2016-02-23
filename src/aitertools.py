@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 import functools
 
 
@@ -88,3 +89,7 @@ async def alist(aiterable):
 
 async def atuple(aiterable):
     return tuple(await alist(aiterable))
+
+
+def acount(start=0, step=1):
+    return to_aiter(itertools.count(start, step))
