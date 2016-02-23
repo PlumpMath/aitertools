@@ -40,6 +40,20 @@ class TestAsyncBuiltins:
         assert await aitertools.anext(aiterator, None) == 42
         assert await aitertools.anext(aiterator, None) == None
 
+    @pytest.mark.asyncio
+    async def test_alist(self):
+        """It should return a list from an async iterable."""
+        expected = list(range(20))
+        aiterator = aitertools.to_aiter(expected)
+        assert await aitertools.alist(aiterator) == expected
+
+    @pytest.mark.asyncio
+    async def test_atuple(self):
+        """It should return a tuple from an async iterable."""
+        expected = tuple(range(20))
+        aiterator = aitertools.to_aiter(expected)
+        assert await aitertools.atuple(aiterator) == expected
+
 
 class TestDecorators:
     """Tests for decorator functions."""

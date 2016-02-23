@@ -77,3 +77,14 @@ async def schedule(aiterable, scheduler):
         value, _ = await anext(azipped)
         return value
     return __anext__
+
+
+async def alist(aiterable):
+    values = []
+    async for value in aiterable:
+        values.append(value)
+    return values
+
+
+async def atuple(aiterable):
+    return tuple(await alist(aiterable))
