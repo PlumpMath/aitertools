@@ -133,3 +133,30 @@ async def aaccumulate(aiterable, afunc=to_async(operator.add)):
             accumulated = await afunc(accumulated, current)
         return accumulated
     return __anext__
+
+
+@coroutine_iterator
+async def achain_from_aiterable(aiterables):
+    aiterables = await aiter(aiterables)
+    aiterator = _sentinel
+
+    async def __anext__():
+        nonlocal aiterator
+
+        if aiterator == _sentinel:
+            aiterable = await anext(aiterables)
+            aiterator = await aiter(aiterable)
+
+        while True:
+            try:
+                return await anext(aiterator)
+            except StopAsyncIteration:
+                aiterable = await anext(aiterables)
+                aiterator = await aiter(aiterable)
+
+    return __anext__
+
+
+def achain(*aiterables):
+    return achain_from_aiterable(to_aiter(aiterables))
+achain.from_aiterable = achain_from_aiterable

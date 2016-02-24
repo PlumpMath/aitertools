@@ -225,6 +225,26 @@ class TestAsyncItertools:
 
         assert values == [1, 3, 6, 10]
 
+    @pytest.mark.asyncio
+    async def test_achain(self):
+        """It should chain aiterables together."""
+        aiterable1 = aitertools.to_aiter('abc')
+        aiterable2 = aitertools.to_aiter('def')
+        values = []
+        async for value in aitertools.achain(aiterable1, aiterable2):
+            values.append(value)
+        assert values == ['a', 'b', 'c', 'd', 'e', 'f']
+
+    @pytest.mark.asyncio
+    async def test_achain_from_aiterable(self):
+        """It should lazily chain aiterables together."""
+        iterator = (aitertools.to_aiter(char) for char in 'abcdef')
+        aiterator = aitertools.to_aiter(iterator)
+        values = []
+        async for value in aitertools.achain.from_aiterable(aiterator):
+            values.append(value)
+        assert values == ['a', 'b', 'c', 'd', 'e', 'f']
+
 
 class TestUniqueAsyncItertools:
     """Tests for functionality new to aitertools."""
