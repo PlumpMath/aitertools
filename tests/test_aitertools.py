@@ -1,5 +1,6 @@
 """Test the aitertools module."""
 import pytest
+import operator
 
 import aitertools
 
@@ -158,6 +159,71 @@ class TestAsyncItertools:
         assert await aitertools.anext(aiterator) == 105
         assert await aitertools.anext(aiterator) == 110
         assert await aitertools.anext(aiterator) == 115
+
+    @pytest.mark.asyncio
+    async def test_acycle(self):
+        """It should cycle an aiterable."""
+        aiterable = aitertools.to_aiter(list(range(3)))
+        aiterator = aitertools.acycle(aiterable)
+        assert await aitertools.anext(aiterator) == 0
+        assert await aitertools.anext(aiterator) == 1
+        assert await aitertools.anext(aiterator) == 2
+        assert await aitertools.anext(aiterator) == 0
+        assert await aitertools.anext(aiterator) == 1
+        assert await aitertools.anext(aiterator) == 2
+        assert await aitertools.anext(aiterator) == 0
+
+    @pytest.mark.asyncio
+    async def test_arepeat_infinite(self):
+        """It should repeat the given value infinitely.
+
+        It can't really be determined that it will give the value
+        infinitely, but we can make sure it takes the right arguments.
+        """
+        aiterator = aitertools.arepeat(42)
+        for i in range(20):
+            assert await aitertools.anext(aiterator) == 42
+
+    @pytest.mark.asyncio
+    async def test_arepeat_finite(self):
+        """It should repeat the given value the given number of times."""
+        aiterator = aitertools.arepeat(42, 10)
+        for i in range(10):
+            assert await aitertools.anext(aiterator) == 42
+        with pytest.raises(StopAsyncIteration):
+            await aitertools.anext(aiterator)
+
+    @pytest.mark.asyncio
+    async def test_aaccumulate_default(self):
+        """It should default to adding."""
+        iterable = [list(i) for i in 'abcdefg']  # A list of lists
+        aiterator = aitertools.to_aiter(iterable)
+
+        values = []
+        async for value in aitertools.aaccumulate(aiterator):
+            values.append(value)
+
+        assert values == [
+            ['a'],
+            ['a', 'b'],
+            ['a', 'b', 'c'],
+            ['a', 'b', 'c', 'd'],
+            ['a', 'b', 'c', 'd', 'e'],
+            ['a', 'b', 'c', 'd', 'e', 'f'],
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+        ]
+
+    @pytest.mark.asyncio
+    async def test_aaccumulate_override(self):
+        """It should default to adding."""
+        afunc = aitertools.to_async(operator.mul)
+        aiterator = aitertools.to_aiter(range(1, 5))
+
+        values = []
+        async for value in aitertools.aaccumulate(aiterator):
+            values.append(value)
+
+        assert values == [1, 3, 6, 10]
 
 
 class TestUniqueAsyncItertools:

@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 import functools
+import operator
 
 
 async def aiter(aiterable):
@@ -93,3 +94,42 @@ async def atuple(aiterable):
 
 def acount(start=0, step=1):
     return to_aiter(itertools.count(start, step))
+
+
+@coroutine_iterator
+async def acycle(aiterable):
+    aiterator = await aiter(aiterable)
+    completed = False
+    cache = []
+    async def __anext__():
+        nonlocal aiterator, completed
+        try:
+            value = await anext(aiterator)
+            if not completed:
+                cache.append(value)
+            return value
+        except StopAsyncIteration:
+            completed = True
+            aiterator = to_aiter(cache)
+            return await anext(aiterator)
+    return __anext__
+
+
+def arepeat(object, times=_sentinel):
+    args = () if times is _sentinel else (times,)
+    return to_aiter(itertools.repeat(object, *args))
+
+
+@coroutine_iterator
+async def aaccumulate(aiterable, afunc=to_async(operator.add)):
+    aiterator = await aiter(aiterable)
+    accumulated = _sentinel
+    async def __anext__():
+        nonlocal accumulated
+        current = await anext(aiterator)
+        if accumulated == _sentinel:
+            accumulated = current
+        else:
+            accumulated = await afunc(accumulated, current)
+        return accumulated
+    return __anext__
